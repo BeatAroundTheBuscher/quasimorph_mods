@@ -1,0 +1,17 @@
+Id,Enabled,InitialPower,InitialTechLevel,InitialPlayerReputation,FactionType,AllianceType,SpawnMissionChance,Strategies,,,,,,StrategyDurationMinHours,StrategyDurationMaxHours,GuardCreatureId,AgentCreatureId,MinQmorphosWhenVictims
+AnCom,TRUE,0,1,20,Corp,Hexarchy,0.1,Expansion,25,Defense,35,Scouting,45,672,1344,ancom_elite_man,man_professor,0
+Tezctlan,TRUE,800,2,20,TezctlanLegion,TezctlanAliance,0.5,Expansion,70,Defense,10,Scouting,20,672,1344,venus_jaguar_knight,venus_acolyte,100
+XiomaraMasks,FALSE,0,1,0,XiomaraLegion,XiomaraAliance,0.1,Expansion,70,Defense,10,Scouting,20,672,1344,venus_eagle_knight,venus_acolyte,100
+SBN,TRUE,0,1,10,Corp,Hexarchy,0.1,Expansion,25,Defense,35,Scouting,45,672,1344,sbn_elite_man,woman_manager,0
+RealWare,TRUE,0,1,10,Corp,Hexarchy,0.1,Expansion,25,Defense,35,Scouting,45,672,1344,realware_elite_man,man_manager,0
+DaydreamChems,TRUE,0,1,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,stationary_turret,woman_medic,0
+PlanetBridge,TRUE,0,1,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,heavy_security_man,woman_scientist,0
+Grasshopper,TRUE,9,3,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,mercury_force_man,woman_manager,0
+Sunlight,TRUE,0,1,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,mercury_force_man,woman_scientist,0
+FrancheComte,TRUE,0,1,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,heavy_security_man,man_manager,0
+ChurchRevelation,TRUE,0,1,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,pmc_man_soldier,woman_scientist,0
+CoreWard,TRUE,0,1,0,Corp,Corporation,0.25,Expansion,25,Defense,25,Scouting,25,672,1344,pmc_man_soldier,man_manager,0
+CResistance,TRUE,0,1,-10,CivilResistance,Resistance,0.5,Expansion,25,Defense,35,Scouting,40,672,1344,cresist_elite_manwoman_worker,0,
+EipschwitzHead,FALSE,0,1,0,XiomaraLegion,XiomaraAliance,0,Expansion,25,Defense,25,Scouting,25,672,1344,mercury_force_manwoman_scientist,0,
+Magnum,FALSE,0,0,100,XiomaraLegion,XiomaraAliance,0,Expansion,25,Defense,25,Scouting,25,672,1344,mercury_force_man,woman_scientist,0
+#end,,,,,,,,,,,,,,,,,,
