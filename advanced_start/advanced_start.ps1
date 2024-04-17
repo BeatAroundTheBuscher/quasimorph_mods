@@ -47,34 +47,50 @@ cp $originalFilePath $backupPath
 
 # $content = [System.IO.File]::ReadAllBytes($originalFilePath)
 # $content = [System.IO.File]::ReadAllLines($originalFilePath)
+# $content.length
 
-$streamReader = [System.IO.File]::OpenText($originalFilePath)
-$streamReaderCSV = [System.IO.File]::OpenText($csvFilePath)
+
+## Chat GPT
+
+
+# Read the content of the file into an array of lines
+$lines = Get-Content -Path $originalFilePath
+$lines | Set-Content -Path $originalFilePath
+
+exit
+
 $lineFound = $false
 
-while ( ($line = $streamReader.ReadLine()) -ne $null)
+$csvFile = Import-CSV -Path $csvFilePath -Delimiter ","
+$currentLine = 0
+foreach ($line in $lines)
 {
+    if ( $lineFound -eq $true -and $line -match "#end" )
+    {
+        $lineFound = $false
+    }
+
     if ( $lineFound -eq $false -and $line -match "InitialPower.*InitialTechLevel" )
     {
         $lineFound = $true
         $lineNumber = 0 # index start at 0
     }
-    if ( $lineFound)
+    elseif ( $lineFound)
     {
-        $csvLine = $streamReaderCSV.ReadLine()
-        Write-Output "$csvLine"
-        Write-Output "$line"
-        # Line-Padding-Alignment-4 $line
+        $lineArray = $line -split '\t{1,}'
+        $lineArray[2] = $csvFile[$lineNumber].InitialPower
+        $lineArray[3] = $csvFile[$lineNumber].InitialTechLevel
+        $newLine = $lineArray -join [char]0x09
+        $lines[$currentLine] = $newLine
         $lineNumber += 1
-        Write-Output "$lineNumber"
-    }
-    if ( $lineFound -eq $true -and $line -match "#end" )
-    {
-        $lineFound = $false
-        exit
     }
 
+    $currentLine++
 }
+
+# Write the modified lines back to the file
+
+
 
 
 
