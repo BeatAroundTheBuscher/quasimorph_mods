@@ -30,24 +30,16 @@ function Line-Padding-Alignment-4 {
 
 
 
+$originalFileName = "resources.assets"
+$csvFileName = "advanced_start.csv"
 
-# front or back slash depends on OS
-
-if ( $IsLinux -eq $true )
-{
-    $originalFilePath = "$PWD/resources.assets"
-    $csvFilePath = "$PWD/advanced_start.csv"
-
-}
-else
-{
-    $originalFilePath = "$PWD\resources.assets"
-    $csvFilePath = "$PWD\advanced_start.csv"
-}
+$originalFilePath = Join-Path $PWD $originalFileName
+$csvFilePath = Join-Path $PWD $csvFileName
 
 $backupPath = "$originalFilePath.bak"
 # Backup-File
-
+Write-Output "$originalFilePath"
+Write-Output "$csvFilePath"
 
 
 
