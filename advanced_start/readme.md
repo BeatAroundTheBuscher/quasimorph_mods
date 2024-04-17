@@ -1,3 +1,7 @@
+## WIP - Advanced Start
+
+Start the game with higher power and tech level for the corporations
+
 ## How to Use
 
 - Move resources.assets into the same folder
