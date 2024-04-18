@@ -43,6 +43,7 @@ $searchPattern = 'MinQmorphosWhenVictims'
 $match = [regex]::Match($fileContent, $searchPattern)
 
 
+
 if ($match.Success) {
     # Get the index of the match within the file content
     $matchIndex = $match.Index + 775144 # no clue why this offset is necessary
@@ -53,54 +54,57 @@ if ($match.Success) {
     $bytesToRead = 30
     $bytesRead = @()
 
-    # find factions after column name row (past \x0a which is \n)
+    $startIndices = @()
+    $startIndices += $matchIndex + $i + 1
+    # we will ignore the first and last index
+    # the first one is part of the pattern matching + offset
+    # each next entry will be the starting line of each faction
+    # the last one will be #end
 
-    $buffer = New-Object byte[] $bytesToRead
-    $bytesReadInThisIteration = $fileStream.Read($buffer, 0, $bytesToRead)
-
-    for ( ($i = 0); $i -lt $bytesToRead; $i++  )
-    {
-        $hexValue = [System.BitConverter]::ToString($buffer[$i]) -replace '-', ' '
-        #$hexValue
-
-        if ( $hexValue -match "0A")
-        {
-            break
-        }
-    }
-
-    # factions start here
-
-
-    
-
+    # find factions after column name row (past \x0A which is \n)
+    # as well as after each new line \x0A
     do 
     {
-        $factionStart = $matchIndex + $i + 1
+        # start with previous index
+        $factionStart = $startIndices[-1] 
         $fileStream.Seek($factionStart, 'Begin')
-        $bytesToRead = 150
-        $bytesRead = @()
+        $bytesToRead = 150 # longest line is 145
         $buffer = New-Object byte[] $bytesToRead
         $bytesReadInThisIteration = $fileStream.Read($buffer, 0, $bytesToRead)
 
+        # find \x0A
         for ( ($i = 0); $i -lt $bytesToRead; $i++  )
         {
             $hexValue = [System.BitConverter]::ToString($buffer[$i]) -replace '-', ' '
-            #$hexValue
 
             if ( $hexValue -match "0A")
             {
-                Write-Output "Very bueno @ $i"
-                break
+                Write-Output "Found \newline @ $i"
+                break # don't need to finish for loop, when we found what we were looking for
             }
         }
+        # turn the buffer into a string for the while condition
         $testbuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
         $testbuffer
-        $matchIndex = $factionStart
-        $bla++;
-    # } while ($bla -lt 20)
+
+        # next faction index
+        $startIndices += $factionStart + $i + 1
+
     } while (-not ($testbuffer -match "end"))
 
+
+    for ( ($i = 1); $i -lt $startIndices.Length-1; $i++  )
+    {
+        $fileStream.Seek($startIndices[$i], 'Begin')
+        $bytesToRead = $startIndices[$i+1] - $startIndices[$i]
+        $buffer = New-Object byte[] $bytesToRead
+        $bytesReadInThisIteration = $fileStream.Read($buffer, 0, $bytesToRead)
+        # $buffer
+        $hexString = [System.BitConverter]::ToString($buffer)
+        $hexString
+        $testbuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
+        $testbuffer
+    }
 
     exit
 
