@@ -92,6 +92,8 @@ if ($match.Success) {
 
     } while (-not ($testbuffer -match "end"))
 
+    $csvFile = Import-CSV -Path $csvFilePath -Delimiter ","
+    $currentLine = 1
 
     for ( ($i = 1); $i -lt $startIndices.Length-1; $i++  )
     {
@@ -104,9 +106,40 @@ if ($match.Success) {
         $hexString
         $testbuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
         $testbuffer
+        $csvFile[$currentLine].InitialTechLevel
+        $currentLine++;
+        # $fileStream.Write($buffer, 0, $bytesToRead)
+
+        # find TRUE/FALSE \s \S+
+
+        for ( ($j = 0); $j -lt $bytesToRead; $j++  )
+        {
+            $hexValue = [System.Text.Encoding]::UTF8.GetString($buffer).SubString($j, 5)
+
+            if ( $hexValue -match "TRUE\t" -or $hexValue -match "FALSE")
+            {
+                Write-Output "Found BOOL @ $j"
+
+                if ( $hexValue -match "TRUE" ) # is shorter than FALSE for the search above
+                {
+                    $initialPowerIndex = $j+5
+                }
+                else
+                {
+                    $initialPowerIndex = $j+6
+                }
+                $rest = [System.Text.Encoding]::UTF8.GetString($buffer).SubString($initialPowerIndex)
+                Write-Output "Start initialPowerIndex:"
+                $rest
+
+                break # don't need to finish for loop, when we found what we were looking for
+            }
+        }
+        exit
     }
 
     exit
+
 
 
     while ($bytesRead.Count -lt $bytesToRead) {
@@ -130,13 +163,18 @@ if ($match.Success) {
         $hexString = [System.BitConverter]::ToString($buffer) -replace '-', ' '
         $bytesRead.Length
         $hexString
+
+
+        
+
+
+
+        # $lineArray[3] = $csvFile[$lineNumber].InitialTechLevel
     }
 
     
 
-    # $Mybytes = [byte[]]
-    # $fileStream.ReadExactly($MyBytes, $matchIndex, 10)
-    # $MyBytes
+
 }
 else
 {
@@ -149,8 +187,7 @@ exit
 
 $lineFound = $false
 
-$csvFile = Import-CSV -Path $csvFilePath -Delimiter ","
-$currentLine = 0
+
 foreach ($line in $lines)
 {
     if ( $lineFound -eq $true -and $line -match "#end" )
