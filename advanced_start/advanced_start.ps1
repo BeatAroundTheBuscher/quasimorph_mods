@@ -7,7 +7,7 @@ function Debug-Output {
 
     if ( $DEBUG -eq 1 )
     {
-        Write-Output "[DEBUG]    $line"
+        Write-Output "[DEBUG]`t$line"
     }
 }
 
@@ -121,54 +121,8 @@ if ($match.Success) {
         $startIndices += $factionStart + $i + 1
 
     } while (-not ($testBuffer -match "end"))
-    
-    $csvFile = Import-CSV -Path $csvFilePath -Delimiter "," > $null
-    $currentLine = 1
 
-    for ( ($i = 1); $i -lt $startIndices.Length-1; $i++  )
-    {
-        $notUsed = $originalFileStream.Seek($startIndices[$i], 'Begin')
-        $bytesToRead = $startIndices[$i+1] - $startIndices[$i]
-        $buffer = New-Object byte[] $bytesToRead
-        $notUsed = $originalFileStream.Read($buffer, 0, $bytesToRead)
-        # $buffer
-        $hexString = [System.BitConverter]::ToString($buffer)
-        # $hexString
-        $testBuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
-        # $testBuffer
-        # $csvFile[$currentLine].InitialTechLevel
-        $currentLine++;
-        
-        # $originalFileStream.Write($buffer, 0, $bytesToRead)
-
-        # find TRUE/FALSE \s \S+
-
-        for ( ($j = 0); $j -lt $bytesToRead; $j++  )
-        {
-            $hexValue = [System.Text.Encoding]::UTF8.GetString($buffer).SubString($j, 5)
-
-            if ( $hexValue -match "TRUE\t" -or $hexValue -match "FALSE")
-            {
-                Debug-Output "Found BOOL @ $j"
-
-                if ( $hexValue -match "TRUE" ) # is shorter than FALSE for the search above
-                {
-                    $initialPowerIndex = $j+5
-                }
-                else
-                {
-                    $initialPowerIndex = $j+6
-                }
-                $rest = [System.Text.Encoding]::UTF8.GetString($buffer).SubString($initialPowerIndex)
-                # Write-Output "Start initialPowerIndex:"
-                $rest
-
-                break # don't need to finish for loop, when we found what we were looking for
-            }
-        }
-        
-    }
-
+    # Create new File
     Write-Output "Creating New File @ $newFilePath"
     Remove-Item -Path $newFilePath
     New-Item -Path $newFilePath > $null
@@ -183,96 +137,60 @@ if ($match.Success) {
 
     # copy changed part - factions
     $startIndex = $startIndices[1]
-    $bytesToWrite = $startIndices[-1] - $startIndices[1]
-    Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
+
+    $csvFile = Import-CSV -Path $csvFilePath -Delimiter ","
+    $bytesToWrite = 0
+    
+    $csvText = "" # probably redundant # but helps with correct writeBuffer size
+
+    foreach ( $row in $csvFile ) {
+        if ( -not ($row -match "#end" ))
+        {
+            # quick and dirty
+            $rowId = $row.Id
+            $rowEnabled = $row.Enabled
+            $rowInitialPower = $row.InitialPower
+            $rowInitialTechLevel = $row.InitialTechLevel
+            $rowInitialPlayerReputation = $row.InitialPlayerReputation
+            $rowFactionType = $row.FactionType
+            $rowAllianceType = $row.AllianceType
+            $rowSpawnMissionChance = $row.SpawnMissionChance
+            $rowStrategies = $row.Strategies
+            $rowStrategyDurationMinHours = $row.StrategyDurationMinHours
+            $rowStrategyDurationMaxHours = $row.StrategyDurationMaxHours
+            $rowGuardCreatureId = $row.GuardCreatureId
+            $rowAgentCreatureId = $row.AgentCreatureId
+            $rowMinQmorphosWhenVictims = $row.MinQmorphosWhenVictims
+
+            $rowOutput =  "$rowId`t$rowEnabled`t$rowInitialPower`t$rowInitialTechLevel`t$rowInitialPlayerReputation`t$rowFactionType`t$rowAllianceType`t$rowSpawnMissionChance`t$rowStrategies`t$rowStrategyDurationMinHours`t$rowStrategyDurationMaxHours`t$rowGuardCreatureId`t$rowAgentCreatureId`t$rowMinQmorphosWhenVictims`r"
+            $csvText += $rowOutput
+            $bytesToWrite += $rowOutput.Length
+        }
+    }
+
+    
+    $writeBuffer = New-Object byte[] $bytesToWrite
+    $writeBuffer.getType()
+    $csvText.getType()
+    $writeBuffer += $csvText # probably redundant
+    $writeBuffer.getType()
+ 
+    $newFileStream.Write($csvText, 0, $bytesToWrite)
 
     # copy last unchange part
     $startIndex = $startIndices[-1]
     $bytesToWrite = $originalFileLength - $startIndices[-1]
-    Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
+    # Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
 
     $newFileStream.close()
     $originalFileStream.close()
 
     exit
-
-
-
-    while ($bytesRead.Count -lt $bytesToRead) {
-        # Calculate the remaining bytes to read
-        $remainingBytes = $bytesToRead - $bytesRead.Count
-        
-        # Create a byte array to store the bytes read in this iteration
-        $buffer = New-Object byte[] $remainingBytes
-
-        # Read bytes from the file into the buffer
-        $bytesReadInThisIteration = $originalFileStream.Read($buffer, 0, $remainingBytes)
-
-        # Check if any bytes were read in this iteration
-        if ($bytesReadInThisIteration -eq 0) {
-            # End of file reached or no bytes available
-            break
-        }
-
-        # Append the bytes read in this iteration to the array of bytes read
-        $bytesRead += $buffer[0..($bytesReadInThisIteration - 1)]
-        $hexString = [System.BitConverter]::ToString($buffer) -replace '-', ' '
-        $bytesRead.Length
-        $hexString
-
-
-        
-
-
-
-        # $lineArray[3] = $csvFile[$lineNumber].InitialTechLevel
-    }
-
-    
-
-
 }
 else
 {
     Write-Output "No bueno"
     exit
 }
-
-
-exit
-
-$lineFound = $false
-
-
-foreach ($line in $lines)
-{
-    if ( $lineFound -eq $true -and $line -match "#end" )
-    {
-        $lineFound = $false
-    }
-
-    if ( $lineFound -eq $false -and $line -match "InitialPower.*InitialTechLevel" )
-    {
-        $lineFound = $true
-        $lineNumber = 0 # index start at 0
-    }
-    elseif ( $lineFound)
-    {
-        $lineArray = $line -split '\t{1,}'
-        $lineArray[2] = $csvFile[$lineNumber].InitialPower
-        $lineArray[3] = $csvFile[$lineNumber].InitialTechLevel
-        $newLine = $lineArray -join [char]0x09
-        $lines[$currentLine] = $newLine
-        $lineNumber += 1
-    }
-
-    $currentLine++
-}
-
-# Write the modified lines back to the file
-
-
-
-
 
 
