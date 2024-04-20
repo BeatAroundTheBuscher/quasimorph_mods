@@ -11,6 +11,23 @@ function Debug-Output {
     }
 }
 
+function Write-Part-For-Resources-Assets {
+    param (
+        $originalFileStream,
+        $newFileStream,
+        $startIndex,
+        $bytesToWrite
+    )
+    
+    $writeBuffer = New-Object byte[] $bytesToWrite
+    $notUsed = $originalFileStream.Seek($startIndex, 'Begin') # shouldn't be necessary
+    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
+    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
+    Debug-Output "Writing modified faction part"
+    Debug-Output "Start Index: $startIndex"
+    Debug-Output "Bytes to Write: $bytesToWrite"
+}
+
 $originalFileName = "resources.assets"
 $csvFileName = "advanced_start.csv"
 
@@ -143,7 +160,7 @@ if ($match.Success) {
                     $initialPowerIndex = $j+6
                 }
                 $rest = [System.Text.Encoding]::UTF8.GetString($buffer).SubString($initialPowerIndex)
-                Write-Output "Start initialPowerIndex:"
+                # Write-Output "Start initialPowerIndex:"
                 $rest
 
                 break # don't need to finish for loop, when we found what we were looking for
@@ -156,35 +173,23 @@ if ($match.Success) {
     Remove-Item -Path $newFilePath
     New-Item -Path $newFilePath > $null
 
-    Debug-Output "Write till relevant part starts"
-
-    
     $newFileStream = [System.IO.File]::Open($newFilePath, 'Open', 'Write')
     $originalFileLength = $originalFileStream.Seek(0, 'End')
    
     # copy first unchanged part
+    $startIndex = 0
     $bytesToWrite = $startIndices[1]
-    $writeBuffer = New-Object byte[] $bytesToWrite
-    $originalFileStream.Seek(0, 'Begin')
-    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
-    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
+    Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
 
-    # copy changed part
+    # copy changed part - factions
+    $startIndex = $startIndices[1]
     $bytesToWrite = $startIndices[-1] - $startIndices[1]
-    $writeBuffer = New-Object byte[] $bytesToWrite
-    $originalFileStream.Seek($startIndices[1], 'Begin') # shouldn't be necessary
-    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
-    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
+    Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
 
     # copy last unchange part
+    $startIndex = $startIndices[-1]
     $bytesToWrite = $originalFileLength - $startIndices[-1]
-    $writeBuffer = New-Object byte[] $bytesToWrite
-    $originalFileStream.Seek($startIndices[-1], 'Begin')
-    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
-    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
-
-    $startIndices
-
+    Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
 
     $newFileStream.close()
     $originalFileStream.close()
