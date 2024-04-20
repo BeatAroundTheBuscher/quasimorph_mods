@@ -1,61 +1,46 @@
-function Backup-File {
+$DEBUG = 1
 
-    if ( [System.IO.File]::Exists($backupPath) )
+function Debug-Output {
+    param (
+        $line
+    )
+
+    if ( $DEBUG -eq 1 )
     {
-        $overwriteBackup = Read-Host "Do you want to overwrite your backup? (y to proceed, anything else to abort)"
-        if ( $overwriteBackup -match "y" )
-        {
-            Write-Output "Overwriting backup in path $backupPath"
-        }
-        else
-        {
-            Write-Output "Not overwriting backup - Stopping here"
-            exit
-        }
+        Write-Output "[DEBUG]    $line"
     }
 }
-
 
 $originalFileName = "resources.assets"
 $csvFileName = "advanced_start.csv"
 
+$newPath = Join-Path $PWD "new"
+mkdir $newPath 2> $null # don't show error
 $originalFilePath = Join-Path $PWD $originalFileName
+$newFilePath = Join-Path $newPath $originalFileName
 $csvFilePath = Join-Path $PWD $csvFileName
 
-$backupPath = "$originalFilePath.bak"
-
-# Backup-File
-
-Write-Output "$originalFilePath"
-Write-Output "$csvFilePath"
-
-cp $originalFilePath $backupPath
 
 
 $fileContent = Get-Content -Raw -Path $originalFilePath
 
-# 11801008 # nail	Enabled	# 0xb411b0 but should start at b411bd 
-# it's possible that pattern matching is only 16 bytes accurate
-
+# 11801008 # "nail	Enabled"	# 0xb411b0 but should start at b411bd 
 # 11026072 = 0xA83E98 but should be 0xB41280 - difference is 0xBD3E8 = 775144
 $searchPattern = 'MinQmorphosWhenVictims' 
-
 $match = [regex]::Match($fileContent, $searchPattern)
-
-
 
 if ($match.Success) {
     # Get the index of the match within the file content
     $matchIndex = $match.Index + 775144 # no clue why this offset is necessary
 
-    $fileStream = [System.IO.File]::Open($originalFilePath, 'Open', 'ReadWrite')
-    $fileStream.Seek($matchIndex, 'Begin')
+    $originalFileStream = [System.IO.File]::Open($originalFilePath, 'Open', 'Read')
+    $notUsed = $originalFileStream.Seek($matchIndex, 'Begin')
 
     $bytesToRead = 30
     $bytesRead = @()
 
     $startIndices = @()
-    $startIndices += $matchIndex + $i + 1
+    $startIndices += $matchIndex + 1
     # we will ignore the first and last index
     # the first one is part of the pattern matching + offset
     # each next entry will be the starting line of each faction
@@ -65,12 +50,40 @@ if ($match.Success) {
     # as well as after each new line \x0A
     do 
     {
-        # start with previous index
+        # start with previous index # startIndices is appended per faction line
         $factionStart = $startIndices[-1] 
-        $fileStream.Seek($factionStart, 'Begin')
-        $bytesToRead = 150 # longest line is 145
+        if ( $startIndices.Length -gt 1)
+        {
+            Debug-Output "New Faction Index is at $factionStart"
+        }
+        $notUsed = $originalFileStream.Seek($factionStart, 'Begin')
+        $bytesToRead = 200 # longest line is 145 # lines may become longer
         $buffer = New-Object byte[] $bytesToRead
-        $bytesReadInThisIteration = $fileStream.Read($buffer, 0, $bytesToRead)
+        # notused is only used to hide the resulting message
+        $notUsed = $originalFileStream.Read($buffer, 0, $bytesToRead)
+
+
+        # find \x0A
+        if ( $DEBUG -eq 1)
+        {
+            for ( ($i = 0); $i -lt $bytesToRead; $i++  )
+            {
+                $hexValue = [System.BitConverter]::ToString($buffer[$i]) -replace '-', ' '
+
+                if ( $hexValue -match "09")
+                {
+                    if ( $startIndices.Length -gt 1)
+                    {
+                        Debug-Output "    Found \tab @ $i"
+                        $testBuffer = [System.Text.Encoding]::UTF8.GetString($buffer).SubString(0, $i)
+
+                        Debug-Output "Faction is $testBuffer"
+                    }
+                    
+                    break # don't need to finish for loop, when we found what we were looking for
+                }
+            }
+        }
 
         # find \x0A
         for ( ($i = 0); $i -lt $bytesToRead; $i++  )
@@ -79,36 +92,37 @@ if ($match.Success) {
 
             if ( $hexValue -match "0A")
             {
-                Write-Output "Found \newline @ $i"
+                Debug-Output "    Found \newline @ $i"
                 break # don't need to finish for loop, when we found what we were looking for
             }
         }
         # turn the buffer into a string for the while condition
-        $testbuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
-        $testbuffer
+        $testBuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
+        # $testBuffer
 
         # next faction index
         $startIndices += $factionStart + $i + 1
 
-    } while (-not ($testbuffer -match "end"))
-
-    $csvFile = Import-CSV -Path $csvFilePath -Delimiter ","
+    } while (-not ($testBuffer -match "end"))
+    
+    $csvFile = Import-CSV -Path $csvFilePath -Delimiter "," > $null
     $currentLine = 1
 
     for ( ($i = 1); $i -lt $startIndices.Length-1; $i++  )
     {
-        $fileStream.Seek($startIndices[$i], 'Begin')
+        $notUsed = $originalFileStream.Seek($startIndices[$i], 'Begin')
         $bytesToRead = $startIndices[$i+1] - $startIndices[$i]
         $buffer = New-Object byte[] $bytesToRead
-        $bytesReadInThisIteration = $fileStream.Read($buffer, 0, $bytesToRead)
+        $notUsed = $originalFileStream.Read($buffer, 0, $bytesToRead)
         # $buffer
         $hexString = [System.BitConverter]::ToString($buffer)
-        $hexString
-        $testbuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
-        $testbuffer
-        $csvFile[$currentLine].InitialTechLevel
+        # $hexString
+        $testBuffer = [System.Text.Encoding]::UTF8.GetString($buffer)
+        # $testBuffer
+        # $csvFile[$currentLine].InitialTechLevel
         $currentLine++;
-        # $fileStream.Write($buffer, 0, $bytesToRead)
+        
+        # $originalFileStream.Write($buffer, 0, $bytesToRead)
 
         # find TRUE/FALSE \s \S+
 
@@ -118,7 +132,7 @@ if ($match.Success) {
 
             if ( $hexValue -match "TRUE\t" -or $hexValue -match "FALSE")
             {
-                Write-Output "Found BOOL @ $j"
+                Debug-Output "Found BOOL @ $j"
 
                 if ( $hexValue -match "TRUE" ) # is shorter than FALSE for the search above
                 {
@@ -150,7 +164,7 @@ if ($match.Success) {
         $buffer = New-Object byte[] $remainingBytes
 
         # Read bytes from the file into the buffer
-        $bytesReadInThisIteration = $fileStream.Read($buffer, 0, $remainingBytes)
+        $bytesReadInThisIteration = $originalFileStream.Read($buffer, 0, $remainingBytes)
 
         # Check if any bytes were read in this iteration
         if ($bytesReadInThisIteration -eq 0) {
