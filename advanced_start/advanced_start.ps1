@@ -29,8 +29,8 @@ function Write-Part-For-Resources-Assets {
 }
 
 $originalFileName = "resources.assets"
-# $csvFileName = "advanced_start.csv"
-$csvFileName = "original_start_modified.csv"
+$csvFileName = "advanced_start.csv"
+# $csvFileName = "original_start_modified.csv"
 
 $newPath = Join-Path $PWD "new"
 mkdir $newPath 2> $null # don't show error

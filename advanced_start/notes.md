@@ -5,12 +5,12 @@ This is testable by adding a new byte with ghex or any other hex editor to the t
 Reducing the amount is not a problem (f. ex.) turning the powerlevel of Tezctlan 800->80
 Taking a byte away from relation and adding to tech level is also not a problem. Same is true for one faction to another.
 
-According to ChatGPT there is no real "length" field
+According to ChatGPT there is no real "length" field in resources.assets
 
 The offset for the next block "#alliances" starts at 0xB41A73"
 "#factions" starts at 0xB4118C
 
-Taking away at the end of #end to add for values does not work
+Taking away \x09 at the end of #end to add for values does not work
 
 ## Other notes
 
