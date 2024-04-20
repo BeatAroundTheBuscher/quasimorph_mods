@@ -4,11 +4,14 @@ Start the game with higher power and tech level for the corporations
 
 ## How to Use
 
-- Move resources.assets into the same folder
-- modify advanced_start.csv (For now only Column C - InitialPower and D - InitialTechLevel)
+- Copy resources.assets into the same folder
+- modify copy "original_start_modified.csv" to "advanced_start.csv" and change values. Make sure to pay attention to the limitations!
 - Run
     - in Linux with `pwsh advanced_start.ps1`
     - in Windows with `ps  advanced_start.ps1`
+- There should be a folder "new" in this folder now which contains a new resources.assets
+- Make a backup of the original files!
+- Copy that back to the game directory
 
 ## Limitations
 

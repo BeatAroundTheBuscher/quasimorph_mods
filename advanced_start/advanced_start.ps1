@@ -33,7 +33,7 @@ $csvFileName = "advanced_start.csv"
 # $csvFileName = "original_start_modified.csv"
 
 $newPath = Join-Path $PWD "new"
-mkdir $newPath 2> $null # don't show error
+mkdir $newPath # 2> $null # don't show error
 $originalFilePath = Join-Path $PWD $originalFileName
 $newFilePath = Join-Path $newPath $originalFileName
 $csvFilePath = Join-Path $PWD $csvFileName
@@ -124,8 +124,12 @@ if ($match.Success) {
     } while (-not ($testBuffer -match "end"))
 
     # Create new File
-    Write-Output "Creating New File @ $newFilePath"
+    
+
+    Write-Output "Trying to remove Existing New file. If this throws an error, it just means that you are running the script for the first time"
     Remove-Item -Path $newFilePath
+
+    Write-Output "Creating New File @ $newFilePath"
     New-Item -Path $newFilePath > $null
 
     $newFileStream = [System.IO.File]::Open($newFilePath, 'Open', 'Write')
