@@ -29,7 +29,8 @@ function Write-Part-For-Resources-Assets {
 }
 
 $originalFileName = "resources.assets"
-$csvFileName = "advanced_start.csv"
+# $csvFileName = "advanced_start.csv"
+$csvFileName = "original_start_modified.csv"
 
 $newPath = Join-Path $PWD "new"
 mkdir $newPath 2> $null # don't show error
@@ -162,25 +163,24 @@ if ($match.Success) {
             $rowAgentCreatureId = $row.AgentCreatureId
             $rowMinQmorphosWhenVictims = $row.MinQmorphosWhenVictims
 
-            $rowOutput =  "$rowId`t$rowEnabled`t$rowInitialPower`t$rowInitialTechLevel`t$rowInitialPlayerReputation`t$rowFactionType`t$rowAllianceType`t$rowSpawnMissionChance`t$rowStrategies`t$rowStrategyDurationMinHours`t$rowStrategyDurationMaxHours`t$rowGuardCreatureId`t$rowAgentCreatureId`t$rowMinQmorphosWhenVictims`r"
+            $rowOutput =  "$rowId`t`t$rowEnabled`t$rowInitialPower`t$rowInitialTechLevel`t$rowInitialPlayerReputation`t$rowFactionType`t$rowAllianceType`t$rowSpawnMissionChance`t$rowStrategies`t$rowStrategyDurationMinHours`t$rowStrategyDurationMaxHours`t$rowGuardCreatureId`t$rowAgentCreatureId`t$rowMinQmorphosWhenVictims`t`t`t`r`n"
             $csvText += $rowOutput
             $bytesToWrite += $rowOutput.Length
         }
     }
 
-    
     $writeBuffer = New-Object byte[] $bytesToWrite
-    $writeBuffer.getType()
-    $csvText.getType()
+    # https://shellgeek.com/powershell-convert-string-to-byte-array/
+    $csvText = [System.Text.Encoding]::UTF8.GetBytes($csvText)
     $writeBuffer += $csvText # probably redundant
-    $writeBuffer.getType()
  
     $newFileStream.Write($csvText, 0, $bytesToWrite)
+    Debug-Output "Altered $bytesToWrite Bytes"
 
-    # copy last unchange part
+    # copy last unchange part modified with length from before
     $startIndex = $startIndices[-1]
-    $bytesToWrite = $originalFileLength - $startIndices[-1]
-    # Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
+    $bytesToWrite = $originalFileLength - $startIndex
+    Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
 
     $newFileStream.close()
     $originalFileStream.close()
