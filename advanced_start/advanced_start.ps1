@@ -1,4 +1,4 @@
-$DEBUG = 1
+$DEBUG = 0
 
 function Debug-Output {
     param (
@@ -175,7 +175,12 @@ if ($match.Success) {
     $writeBuffer += $csvText # probably redundant
  
     $newFileStream.Write($csvText, 0, $bytesToWrite)
-    Debug-Output "Altered $bytesToWrite Bytes"
+    Write-Output "Altered $bytesToWrite Bytes"
+
+    if ( -not ($bytesToWrite -eq 1970 ))
+    {
+        Write-OUTPUT "WARNING: Your CSV file writes $bytesToWrite bytes instead of 1970. More WILL NOT WORK. Less might work"
+    }
 
     # copy last unchange part modified with length from before
     $startIndex = $startIndices[-1]
