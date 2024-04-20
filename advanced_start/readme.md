@@ -5,7 +5,7 @@ Start the game with higher power and tech level for the corporations
 ## How to Use
 
 - Copy resources.assets into the same folder
-- modify copy "original_start_modified.csv" to "advanced_start.csv" and change values. Make sure to pay attention to the limitations!
+- Copy "original_start_modified.csv" to "advanced_start.csv" and change values. Make sure to pay attention to the limitations!
 - Run
     - in Linux with `pwsh advanced_start.ps1`
     - in Windows with `ps  advanced_start.ps1`
