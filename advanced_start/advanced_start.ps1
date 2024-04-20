@@ -149,8 +149,45 @@ if ($match.Success) {
                 break # don't need to finish for loop, when we found what we were looking for
             }
         }
-        exit
+        
     }
+
+    Write-Output "Creating New File @ $newFilePath"
+    Remove-Item -Path $newFilePath
+    New-Item -Path $newFilePath > $null
+
+    Debug-Output "Write till relevant part starts"
+
+    
+    $newFileStream = [System.IO.File]::Open($newFilePath, 'Open', 'Write')
+    $originalFileLength = $originalFileStream.Seek(0, 'End')
+   
+    # copy first unchanged part
+    $bytesToWrite = $startIndices[1]
+    $writeBuffer = New-Object byte[] $bytesToWrite
+    $originalFileStream.Seek(0, 'Begin')
+    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
+    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
+
+    # copy changed part
+    $bytesToWrite = $startIndices[-1] - $startIndices[1]
+    $writeBuffer = New-Object byte[] $bytesToWrite
+    $originalFileStream.Seek($startIndices[1], 'Begin') # shouldn't be necessary
+    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
+    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
+
+    # copy last unchange part
+    $bytesToWrite = $originalFileLength - $startIndices[-1]
+    $writeBuffer = New-Object byte[] $bytesToWrite
+    $originalFileStream.Seek($startIndices[-1], 'Begin')
+    $notUsed = $originalFileStream.Read($writeBuffer, 0, $bytesToWrite)
+    $newFileStream.Write($writeBuffer, 0, $bytesToWrite)
+
+    $startIndices
+
+
+    $newFileStream.close()
+    $originalFileStream.close()
 
     exit
 
