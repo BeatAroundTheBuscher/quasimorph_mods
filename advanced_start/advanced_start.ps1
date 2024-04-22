@@ -186,7 +186,7 @@ if ($match.Success) {
         Write-OUTPUT "WARNING: Your CSV file writes $bytesToWrite bytes instead of 1970. More WILL NOT WORK. Less might work"
     }
 
-    # copy last unchange part modified with length from before
+    # copy last unchange part 
     $startIndex = $startIndices[-1]
     $bytesToWrite = $originalFileLength - $startIndex
     Write-Part-For-Resources-Assets $originalFileStream $newFileStream $startIndex $bytesToWrite
