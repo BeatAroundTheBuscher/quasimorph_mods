@@ -29,7 +29,7 @@ function Write-Part-For-Resources-Assets {
 }
 
 $originalFileName = "resources.assets"
-$csvFileName = "advanced_start.csv"
+$csvFileName = "free_for_all.csv" # "advanced_start.csv"
 # $csvFileName = "original_start_modified.csv"
 
 $newPath = Join-Path $PWD "new"
@@ -44,18 +44,21 @@ $fileContent = Get-Content -Raw -Path $originalFilePath
 
 # 11801008 # "nail	Enabled"	# 0xb411b0 but should start at b411bd 
 # 11026072 = 0xA83E98 but should be 0xB41280 - difference is 0xBD3E8 = 775144
+
+# 0.6.3 MinQmorphosWhenVictims starts at 0x00B62401 = 11936769
 $searchPattern = 'MinQmorphosWhenVictims' 
 $match = [regex]::Match($fileContent, $searchPattern)
 
 if ($match.Success) {
+    $match.Index # 0.6.3 # 11141127 # new difference 795642
+
     # Get the index of the match within the file content
-    $matchIndex = $match.Index + 775144 # no clue why this offset is necessary
+    $matchIndex = $match.Index + 795642 # no clue why this offset is necessary
 
     $originalFileStream = [System.IO.File]::Open($originalFilePath, 'Open', 'Read')
     $notUsed = $originalFileStream.Seek($matchIndex, 'Begin')
 
     $bytesToRead = 30
-    $bytesRead = @()
 
     $startIndices = @()
     $startIndices += $matchIndex + 1
@@ -167,7 +170,7 @@ if ($match.Success) {
             $rowAgentCreatureId = $row.AgentCreatureId
             $rowMinQmorphosWhenVictims = $row.MinQmorphosWhenVictims
 
-            $rowOutput =  "$rowId`t`t$rowEnabled`t$rowInitialPower`t$rowInitialTechLevel`t$rowInitialPlayerReputation`t$rowFactionType`t$rowAllianceType`t$rowSpawnMissionChance`t$rowStrategies`t$rowStrategyDurationMinHours`t$rowStrategyDurationMaxHours`t$rowGuardCreatureId`t$rowAgentCreatureId`t$rowMinQmorphosWhenVictims`t`t`t`r`n"
+            $rowOutput =  "$rowId`t`t$rowEnabled`t$rowInitialPower`t$rowInitialTechLevel`t$rowInitialPlayerReputation`t$rowFactionType`t$rowAllianceType`t$rowSpawnMissionChance`t$rowStrategies`t$rowStrategyDurationMinHours`t$rowStrategyDurationMaxHours`t$rowGuardCreatureId`t$rowAgentCreatureId`t$rowMinQmorphosWhenVictims`r`n"
             $csvText += $rowOutput
             $bytesToWrite += $rowOutput.Length
         }
@@ -181,7 +184,7 @@ if ($match.Success) {
     $newFileStream.Write($csvText, 0, $bytesToWrite)
     Write-Output "Altered $bytesToWrite Bytes"
 
-    if ( -not ($bytesToWrite -eq 1970 ))
+    if ( -not ($bytesToWrite -eq 1925 ))
     {
         Write-OUTPUT "WARNING: Your CSV file writes $bytesToWrite bytes instead of 1970. More WILL NOT WORK. Less might work"
     }
